@@ -3,7 +3,7 @@
   <BestUser></BestUser>
                 <!-- chart -->
                 <section>
-                <div class="container px-6 py-10 mx-auto grid grid-cols-11 gap-4">
+                <div id="" class="container grid_res_me px-6 py-10 mx-auto grid grid-cols-11 gap-4 custom-grid">
                     <div class="col-span-5 flex flex-col">
                   <TaskComplet></TaskComplet>
                    
@@ -47,5 +47,14 @@ onMounted(async ()=>{
 
 </script>
 <style>
+@media (max-width: 768px) {
+    .custom-grid {
+        grid-template-columns: 1fr; 
+    }
 
+    .custom-grid .col-span-5,
+    .custom-grid .col-span-3 {
+        grid-column: span 1 / span 1; 
+    }
+}
 </style>

@@ -1,8 +1,5 @@
 <template>
-    <aside id="" class="flex sidebar  h-screen flex-col transition-all max-lg:-right-80   overflow-y-auto  max-lg:fixed  max-lg:z-[100] max-lg:top-0  z-60  w-80  px-5 py-8 
-
-
-shadow-md bg-white  dark:bg-gray-900 dark:border-gray-700">
+    <aside  id="aside" class="flex flex-col transition-all h-screen overflow-y-auto max-lg:fixed sticky max-lg:z-[100] max-lg:top-0 z-60 w-80 px-5 py-8 shadow-md bg-white dark:bg-gray-900 dark:border-gray-700 max-lg:-right-80">
 <div class="flex  flex-col max-lg:overflow-y-auto max-lg:h-screen">
 
 <div class="mx-auto my-2 text-center grid  ">
@@ -176,5 +173,9 @@ color: #4b5563;
 }
 nav a.items-center.router-link-exact-active.dashboard{
 color: blue;
+}
+
+.grid_res_me_right{
+  right: 0 !important;
 }
 </style>

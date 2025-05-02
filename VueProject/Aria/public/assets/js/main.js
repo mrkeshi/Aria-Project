@@ -1,17 +1,18 @@
-function toggle(){
-    let aside=document.getElementById('aside')
-    if(aside.classList.contains('max-lg:-right-80')){
-        aside.classList.remove('max-lg:-right-80')
-       document.getElementById('open').classList.toggle('hidden')
-       document.getElementById('close').classList.toggle('hidden')
-        document.getElementById('filter').classList.toggle('hidden')
-    }else{
-        aside.classList.add('max-lg:-right-80')
-        document.getElementById('open').classList.toggle('hidden')
-       document.getElementById('close').classList.toggle('hidden')
-       document.getElementById('filter').classList.toggle('hidden')
+function toggle() {
+    const aside = document.getElementById('aside');
 
+    if (aside.classList.contains('max-lg:-right-80')) {
+        aside.classList.remove('max-lg:-right-80');
+        aside.classList.add('grid_res_me_right'); // این کلاس باعث میشه right بشه 0
+
+    } else {
+        aside.classList.add('max-lg:-right-80');
+        aside.classList.remove('grid_res_me_right');
     }
+
+    document.getElementById('open').classList.toggle('hidden');
+    document.getElementById('close').classList.toggle('hidden');
+    document.getElementById('filter').classList.toggle('hidden');
 }
 
 

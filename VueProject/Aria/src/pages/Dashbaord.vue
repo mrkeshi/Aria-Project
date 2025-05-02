@@ -26,7 +26,7 @@
                         </div> 
                     </div>
 
-                    <RouterLink :to="{name:'project'}" class="text-blue-500 font-medium text-sm hover:text-blue-800 " target="_blank">مشاهده </RouterLink>
+                    <RouterLink :to="{name:'project'}" class="text-blue-500 font-medium text-sm hover:text-blue-800 " >مشاهده </RouterLink>
                 </div>
                 <div class="bg-white relative rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
                     <div class="flex justify-between mb-6">
@@ -112,11 +112,11 @@
                         </div> 
                     </div>
 
-                    <RouterLink :to="{name:'issuess'}" class="text-blue-500 font-medium text-sm hover:text-blue-800 " target="_blank">مشاهده </RouterLink>
+                    <RouterLink :to="{name:'issuess'}" class="text-blue-500 font-medium text-sm hover:text-blue-800 " >مشاهده </RouterLink>
                 </div>
             </div>
 
-<div class="grid grid-cols-3  md:grid-cols-2 lg:grid-cols-3 gap-6 mb-2" style="  grid-template-columns: 30% 68.5%;grid-auto-rows: auto">
+<div id="myGrid" class="grid grid-cols-3 grid_res_me  md:grid-cols-2 lg:grid-cols-3 gap-6 mb-2" style="  grid-template-columns: 30% 68.5%;grid-auto-rows: auto">
 <div class="bg-white relative rounded-md border border-gray-100 p-6 shadow-md shadow-black/5"  >
     <div class="space-y-5">
     
@@ -225,7 +225,7 @@
 
   <div class="" >
 
-    <section class=" w-full px-4 mx-auto">
+    <section class=" w-full mx-auto" >
 
             
 <div class="flex flex-col mt-6">
@@ -407,3 +407,31 @@ function progressClass(Progress) {
             }
            
 </script>
+
+<style>
+#myGrid.grid_res_me {
+    display: grid;
+    grid-template-columns: 30% 68.5%; 
+    gap: 1.5rem; 
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    #myGrid.grid_res_me {
+        grid-template-columns: 100% !important; 
+        width: 100%; 
+    }
+}
+
+@media (min-width: 768px) {
+    #myGrid.grid_res_me {
+        grid-template-columns: 50% 50% ; 
+    }
+}
+
+@media (min-width: 1024px) {
+    #myGrid.grid_res_me {
+        grid-template-columns: 30% 68.5%; 
+    }
+}
+</style>
