@@ -16,7 +16,7 @@
     <span v-if="user.user.level==1">مدیرپروژه</span>
     <span v-else-if="user.user.level==2" style="width: auto;"> کارمند ارشد {{ user.user.rollname }} </span>
         
-    <span v-else="user.user.level==2"> {{ user.user.rollname }} کارمند </span>
+    <span v-else="user.user.level==2"> کارمند {{ user.user.rollname }}  </span>
 
     </a>
     <a v-else href="#" class="text-xs bg-blue-600 p-1 w-16 text-white rounded-lg font-bold text-center mt-3 mx-auto">نامشخص</a>

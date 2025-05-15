@@ -93,7 +93,7 @@
                                             </td>
                                           
                                             <td class="px-4 py-4 text-sm whitespace-nowrap">
-                                                <div class="w-48 h-1.5 bg-blue-200 overflow-hidden rounded-full">
+                                                <div class="h-1.5 bg-blue-200 overflow-hidden rounded-full">
                                                     
                                                     <div v-if="task.progress" class="bg-blue-500 h-1.5" :style="{ width: task.progress + '%' }"></div>
                                                     <div v-else class="bg-blue-500  h-1.5" style="width: 0;"></div>

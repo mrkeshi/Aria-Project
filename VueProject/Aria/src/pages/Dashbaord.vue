@@ -117,7 +117,7 @@
             </div>
 
 <div id="myGrid" class="grid grid-cols-3 grid_res_me  md:grid-cols-2 lg:grid-cols-3 gap-6 mb-2" style="  grid-template-columns: 30% 68.5%;grid-auto-rows: auto">
-<div class="bg-white relative rounded-md border border-gray-100 p-6 shadow-md shadow-black/5"  >
+<div v-show="Project.projects.data" class="bg-white relative rounded-md border border-gray-100 p-6 shadow-md shadow-black/5"  >
     <div class="space-y-5">
     
         <div v-for="pr in Project.projects.data">
@@ -137,7 +137,7 @@
 
 
 
-  <div class="" v-if="users[0]">
+  <div class="" v-if="users[0] && User.user.level!=3">
     <section class="bg-white relative rounded-md border border-gray-100 p-6 shadow-md shadow-black/5" v-if="users[0]" >
 
             
@@ -229,7 +229,7 @@
 
             
 <div class="flex flex-col mt-6">
-    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+    <div v-show="taskStore.tasks &&  User.user.level!=3" class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle">
             <div class="overflow-hidden border border-gray-200 dark:border-gray-700 md:rounded-lg">
 
@@ -308,8 +308,9 @@
                              </td>
                            
                               <td class=" py-4 text-sm font-medium ">
-                                <span class="bg-yellow-300 text-white p-2 rounded-sm" style="border-radius: 5px;" v-if="task.rate">{{ task.rate }}</span>
-                                <span class="bg-yellow-300 text-white p-2 rounded-sm" style="border-radius: 5px;" v-else> بدون امتیاز</span>
+                                <span class="bg-blue-500 text-white p-2 rounded-sm" style="border-radius: 5px;" v-if="task.rate==100">{{ task.rate }}</span>
+                                <span class="bg-yellow-300 text-white p-2 rounded-sm" style="border-radius: 5px;" v-else-if="task.rate>0">{{ task.rate }}</span>
+                                <span class="bg-red-500 text-white p-2 rounded-sm" style="border-radius: 5px;" v-else> بدون امتیاز</span>
 
                              </td>
                              <td class="px-4 py-4 text-sm font-medium whitespace-nowrap" v-text="convertToJalali(task.finished_at)">

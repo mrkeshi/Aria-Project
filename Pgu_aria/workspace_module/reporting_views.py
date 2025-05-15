@@ -32,8 +32,10 @@ class ProjectDetail(APIView):
         print(developers_of_project)
         project_task_count = project.tasks.count()
         print(project_task_count)
-        user_projects = Project.objects.filter(Q(user=user) and Q(project_manager=user)).count()
-        print('this is a',user)
+        user_projects = Project.objects.filter(project_manager=user).count() +  Project.objects.filter(
+    Q(user__email=user.email) & ~Q(project_manager=user)
+).count()
+
         questions = Question.objects.filter(task__project=project,status=1).count()
         print(user_projects)
         print('questions:',questions)
@@ -126,16 +128,13 @@ class TopUserInProject(ListAPIView):
     def get_queryset(self):
         project_id = self.kwargs.get('project_id')
 
-
         top_users = User.objects.filter(
             users=project_id
         ).annotate(
-
             completed_task_count=Count('task_creator', filter=Q(task_creator=True)),
-
             average_score=Avg('task_creator__rate')
-        ).order_by('completed_task_count', 'average_score')[
-                    :4]
+        ).order_by('-average_score')[:4]
+
         print(top_users)
         return top_users
 class SkillTaskCountView(APIView):
