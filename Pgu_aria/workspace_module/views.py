@@ -4,7 +4,7 @@ from django.db.models import Q, When,Case
 from django.shortcuts import get_object_or_404
 from django.core.validators import validate_email
 from rest_framework import generics
-from .emails import send_invitation_email
+from .emails import send_invitation_email, send_task_creation_email
 from rest_framework import exceptions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -213,6 +213,7 @@ class ProjectOwnerManageTaskViewSet(viewsets.ModelViewSet):
             task_instance.delete()
             raise RestFrameWorkValidationError("Finished date cannot be earlier than created date.")
 
+        send_task_creation_email(task_instance)
 
     def get_queryset(self,*args,**kwargs):
         project = self.request.user.current_project

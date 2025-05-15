@@ -17,4 +17,27 @@ def send_invitation_email(inviter_email, to_email, project, project_id, level, s
   plain_message = strip_tags(html_message)
   
   send_mail(subject, plain_message, from_email, [to_email], html_message=html_message)
-  
+
+
+def send_task_creation_email(task):
+    if not settings.SEND_TASK_CREATION_EMAIL:
+        return
+
+    subject = f"تسک جدید: {task.title}"
+    message = f"""
+    سلام {task.assigned.first_name} عزیز،
+
+    یک تسک جدید با موضوع "{task.title}" در پروژه "{task.project.title}" برای شما تعریف شده است.
+
+    لطفاً برای مشاهده تسک وارد سامانه شوید.
+    """
+
+    recipient_email = task.assigned.email
+    if recipient_email:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[recipient_email],
+            fail_silently=False
+        )
