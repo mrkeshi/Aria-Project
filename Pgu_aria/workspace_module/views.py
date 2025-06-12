@@ -37,6 +37,17 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Project.objects.filter(project_manager=user.id)
     
     def perform_create(self, serializer):
+        # چک کردن پرمیشن
+        if(self.request.user.subscription.is_active):
+            print("\n\n\n -----------------hi---------\n\n\n")
+
+            plan=self.request.user.subscription.plan
+            max_projects = settings.SUBSCRIPTION_LIMITS[plan]['max_projects']
+            if(max_projects<=Project.objects.filter(project_manager=self.request.user).count()):
+                return Response({"message": "Max Project"}, status=404)
+
+
+
         project=serializer.save(project_manager=self.request.user)
         if(self.request.user.current_project):
             pass

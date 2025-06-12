@@ -185,6 +185,27 @@ async function  getUsersWithSkil()  {
 }
 
 onMounted(async()=>{
+    if (!window.jalaliDatepicker) {
+    const script = document.createElement('script')
+    script.src = '/assets/js/Datepicker.min.js' 
+    script.onload = () => {
+     
+      if (window.jalaliDatepicker) {
+        window.jalaliDatepicker.startWatch({
+    'time': true ,
+      minDate: "attr",
+  maxDate: "attr"
+});
+      }
+    }
+    document.head.appendChild(script)
+  } else {
+    window.jalaliDatepicker.startWatch({
+    'time': true ,
+      minDate: "attr",
+  maxDate: "attr"
+});
+  }
     if(userstore.user.level>2){
         toast.warning("شما به این صفحه دسترسی ندارید")
         router.push('/dashboard/')
@@ -254,11 +275,11 @@ function jalali_to_gregorian(jy, jm, jd) {
    
   })
 
-jalaliDatepicker.startWatch({
-    'time': true ,
-      minDate: "attr",
-  maxDate: "attr"
-});
+// jalaliDatepicker.startWatch({
+//     'time': true ,
+//       minDate: "attr",
+//   maxDate: "attr"
+// });
 
 
 

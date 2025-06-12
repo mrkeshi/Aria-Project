@@ -1,0 +1,54 @@
+@media (max-width: 768px) {
+  .pOvRwHj19chJGkgemUH3{
+    display: flex;
+    align-items: center;
+  }
+  .sJcgXLqA2Va2eqymgksg{
+    display: none;
+  }
+  .QajuHzlZleFtiTUp_E8u .D9WLyEQaARfWqCTyVrpU{
+    width:auto !important;
+  }
+  .QajuHzlZleFtiTUp_E8u.zzHlKp_IVmgXBPV3Jv58{
+    min-width: auto !important;
+    width: auto !important;
+  }
+  }
+  @media (max-width: 767px) {
+    .zego_model_parent {
+      flex-direction: column-reverse;
+      padding: 8px;
+      height: auto;
+    }
+  
+    .Xfk1RtGH65gHx0iQ5uPA {
+      flex: none;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+  
+    video.z1WvYJgksHY23EwdFNB5 {
+      width: 100% !important;
+      height: auto !important;
+    }
+  
+    #ZegoRoomFooter {
+      position: static;
+      flex-direction: column;
+      gap: 10px;
+      margin: 20px;
+    }
+    .JtRS8dNV0vDLnpBoA6kZ>div{
+        margin-right: 20px;
+    }
+  
+    #ZegoRoomFooterMiddle, #ZegoRoomFooterRight {
+      justify-content: center;
+      width: 100%;
+    }
+    .sCsSbKP9yxvw4LQAeaTz.zego_model_parent{
+        min-width: auto;
+        overflow-x: hidden;
+    }
+  }
+  

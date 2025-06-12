@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'drf_spectacular_sidecar',
     'issue_module',
-    'django_filters'
+    'django_filters',
+    'Subcription'
 
 ]
 
@@ -199,11 +200,34 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ.get("EMAIL_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 EMAIL_USE_TLS = True
-SEND_TASK_CREATION_EMAIL = True
+SEND_TASK_CREATION_EMAIL = False
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Your Project API',
     'DESCRIPTION': 'Your project description',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+}
+ZARINPAL_MERCHANT_ID = '31f44ef2-1f66-4a10-8d75-859a632024e7'
+FRONTEND_BASE_URL="http://localhost:4433"
+
+SUBSCRIPTION_LIMITS = {
+    "free": {
+        "max_projects": 1,
+        "max_tasks_per_project": 10,
+        "max_users_per_project": 3,
+        "issue":False
+    },
+    "silver": {
+        "max_projects": 5,
+        "max_tasks_per_project": 50,
+        "max_users_per_project": 10,
+        "issue":True
+    },
+    "gold": {
+        "max_projects": None,
+        "max_tasks_per_project": None,
+        "max_users_per_project": None,
+"issue":True
+    },
 }

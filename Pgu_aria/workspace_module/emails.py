@@ -25,7 +25,7 @@ def send_task_creation_email(task):
 
     subject = f"تسک جدید: {task.title}"
     message = f"""
-    سلام {task.assigned.first_name} عزیز،
+    سلام کاربر عزیز،
 
     یک تسک جدید با موضوع "{task.title}" در پروژه "{task.project.title}" برای شما تعریف شده است.
 

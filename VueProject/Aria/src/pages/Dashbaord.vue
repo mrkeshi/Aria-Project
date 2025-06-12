@@ -1,11 +1,54 @@
 <template>
 <div class="">
+    <div class="w-full  mb-6 " v-show="User.user.level==1 || subStore.isActive">
+  <div class="w-full rounded-lg shadow-md p-6 flex items-center justify-between space-x-6 text-white subStorescription-silver"     :class="planClass"
+  >
+    <!-- Left Icon -->
+    <div class="flex-shrink-0 bg-white/20 p-3 rounded-md mx-4 mb-4">
+      <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7l3-7z" />
+      </svg>
+    </div>
+
+    <div class="flex-1">
+  <div class="flex items-center justify-between">
+    <p class="text-sm uppercase tracking-wide font-semibold">اشتراک فعلی</p>
+    <span class="text-xs bg-white/30 px-2 py-1 rounded font-medium">
+      <span v-if="subStore.level === 1">رایگان</span>
+      <span v-else-if="subStore.level === 2">نقره‌ای</span>
+      <span v-else-if="subStore.level === 3">طلایی</span>
+    </span>
+  </div>
+
+  <p class="mt-1 text-base font-bold">
+    {{ toPersianNumber(subStore.remainingDays) }} روز باقی‌مانده
+  </p>
+
+  <div class="w-full bg-white/20 h-2 rounded mt-3">
+    <div
+      class="bg-white h-2 rounded"
+      :style="{ width: progressPercent + '%' }"
+    ></div>
+
+  </div>
+</div>
+
+
+    <!-- Right Button -->
+    <div>
+      <RouterLink :to="{name:'detail'}" href="/subStorescription/details" class="bg-white text-gray-700 hover:bg-gray-100 transition px-3 py-1 rounded-md text-sm font-medium shadow">
+        جزئیات
+      </RouterLink>
+    </div>
+  </div>
+</div>
+    
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <div class="bg-white relative rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
                     <div class="flex justify-between mb-6">
                         <div>
                             <div class="flex items-center mb-1">
-                                <div class="text-2xl font-semibold">{{Report.detailProject.user_projects}}</div>
+                                <div class="text-2xl font-semibold" v-text="toPersianNumber(Report.detailProject.user_projects)"></div>
                             </div>
                             <div class="text-sm font-medium text-gray-400">تعداد پروژه های جاری</div>
                         </div>
@@ -32,7 +75,7 @@
                     <div class="flex justify-between mb-6">
                         <div>
                             <div class="flex items-center mb-1">
-                                <div class="text-2xl font-semibold">{{Report.detailProject.project_task_count}}</div>
+                                <div class="text-2xl font-semibold" v-text="toPersianNumber(Report.detailProject.project_task_count)"></div>
                             </div>
                             <div class="text-sm font-medium text-gray-400">تسک های کل پروژه</div>
                         </div>
@@ -59,9 +102,9 @@
                     <div class="flex justify-between mb-6">
                         <div>
                             <div class="flex items-center mb-1">
-                                <div class="text-2xl font-semibold">{{Report.detailProject.developers_of_project +1}}</div>
+                                <div class="text-2xl font-semibold" v-text="toPersianNumber(Report.detailProject.developers_of_project +1)"></div>
                             </div>
-                            <div class="text-sm font-medium text-gray-400">تعداد کل کارمندان</div>
+                            <div class="text-sm font-medium text-gray-400">تعداد کل کارمندان پروژه جاری  </div>
                         </div>
                         <div class="div  shadow-slate-400 rounded-full w-[72px] h-[72px] ml-4 flex justify-center items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokewidth="1.5" stroke="#C74600" class="size-10">
@@ -88,7 +131,7 @@
                     <div class="flex justify-between mb-6">
                         <div>
                             <div class="flex items-center mb-1">
-                                <div class="text-2xl font-semibold">{{Report.detailProject.questions}}</div>
+                                <div class="text-2xl font-semibold" v-text="toPersianNumber(Report.detailProject.questions)"></div>
                             </div>
                             <div class="text-sm font-medium text-gray-400">گفت و گو ها</div>
                         </div>
@@ -137,7 +180,8 @@
 
 
 
-  <div class="" v-if="users[0] && User.user.level!=3">
+  <div class="" v-if="users[0] ">
+    
     <section class="bg-white relative rounded-md border border-gray-100 p-6 shadow-md shadow-black/5" v-if="users[0]" >
 
             
@@ -229,7 +273,7 @@
 
             
 <div class="flex flex-col mt-6">
-    <div v-show="taskStore.tasks &&  User.user.level!=3" class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+    <div v-show="taskStore.length >0 " class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle">
             <div class="overflow-hidden border border-gray-200 dark:border-gray-700 md:rounded-lg">
 
@@ -340,15 +384,97 @@
 </template>
 
 <script setup>
-const users=reactive({})
+// فراخوانی ها
+import { ref, reactive, onMounted,computed,watch } from 'vue';
 import JDate from 'jalali-date';
+import dayjs from 'dayjs';
+
+import { ShowUsers } from '@/services/user';
+import { useAuthStore } from '@/stores/auth';
+import { useProjectStore } from '@/stores/project';
+import { useReportStore } from '@/stores/Reporting';
+import { useUserStore } from '@/stores/user';
+import { useTaskStore } from '@/stores/TaskStore';
+import { useSubStore } from '@/stores/SubStore';
+
+const users = reactive({});
+const totalDays = ref(null);
+const progressPercent = ref(null);
+import { storeToRefs } from 'pinia'
+
+const subStore = useSubStore();
+const taskStore = useTaskStore();
+const User = useUserStore();
+const Report = useReportStore();
+const Project = useProjectStore();
+const auth = useAuthStore();
+
+onMounted(async () => {
+  await subStore.fetchSubscriptionStatus(auth.user.access);
+  await Report.getDetail(auth.user.access, User.user.current_project);
+  
+  if (subStore.startedAt && subStore.expiresAt) {
+  const end = dayjs(subStore.expiresAt).startOf('day');
+  const start = dayjs(subStore.startedAt).startOf('day');
+  const now = dayjs().startOf('day');
+
+  const total = end.diff(start, 'day');
+  console.log(total)
+  let used = now.diff(start, 'day');
+
+  if (used < 0) used = 0;   
+  if (used > total) used = total; 
+
+  totalDays.value = total;
+
+ 
+  const remainingPercent = (((total - used) / total) * 100).toFixed(0);
+
+  progressPercent.value = remainingPercent;
+
+}
+
+  Project.getprojects(auth.user.access);
+
+
+
+
+
+
+  ShowUsers(auth.user.access, User.user.current_project)
+    .then((data) => {
+      Object.assign(users, { ...data.data });
+    })
+    .catch(() => {
+      toast.error("خطا در بارگذاری");
+      router.push('/dashboard');
+    });
+
+  await taskStore.ShowallTaskAction();
+});
+
+const planClass = computed(() => {
+  switch (subStore.level) {
+    case 1:
+      return 'subStorescription-free';
+    case 2:
+      return 'subStorescription-silver';
+    case 3:
+      return 'subStorescription-gold';
+    default:
+      return '';
+  }
+});
+
 function convertToJalali(isoDate) {
   const date = new Date(isoDate);
+  date.setTime(date.getTime() - 86400000);
 
   const jDate = new JDate(date);
   const jalaliYear = jDate.getFullYear();
   const jalaliMonth = jDate.getMonth(); 
   const jalaliDay = jDate.getDate();
+
 
   const hours = date.getHours();
   const minutes = date.getMinutes();
@@ -357,56 +483,32 @@ function convertToJalali(isoDate) {
   return `${jalaliYear}-${jalaliMonth.toString().padStart(2, '0')}-${jalaliDay.toString().padStart(2, '0')} ` + 
          `| ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
-import { ShowUsers } from '@/services/user';
-import { useAuthStore } from '@/stores/auth';
-import { useProjectStore } from '@/stores/project';
-import { useReportStore } from '@/stores/Reporting';
-import { useUserStore } from '@/stores/user';
-import { onMounted,reactive } from 'vue';
-import { useTaskStore } from '@/stores/TaskStore';
-const taskStore=useTaskStore()
-
-const User=useUserStore()
-function slicedProgress(ali) {
-      return String(ali).slice(0, 5) + "%";
-    }
-
-const Report=useReportStore()
-const Project=useProjectStore()
-const auth=useAuthStore()
-
-onMounted(async()=>{
-  Project.getprojects(auth.user.access)
-  await Report.getDetail(auth.user.access,User.user.current_project)
-  console.log(Report)
-
-  ShowUsers(auth.user.access,User.user.current_project).then((data)=>{
-    console.log(data)
-    Object.assign(users,{...data.data})
-    
-}).catch((data)=>{
-    
-    toast.error("خطا در بارگذاری")
-    router.push('/dashboard')
-})
-
-await taskStore.ShowallTaskAction()
-})
 
 function progressClass(Progress) {
-               
-                let baseClass = "flex flex-col justify-center rounded-full overflow-hidden text-xs text-white text-center whitespace-nowrap transition duration-500";
-                if (Progress <= 25) {
-                    return `${baseClass} bg-red-600`;
-                } else if (Progress <= 50) {
-                    return `${baseClass} bg-blue-600`;
-                } else if (Progress <= 75) {
-                    return `${baseClass} bg-yellow-300`;
-                } else {
-                    return `${baseClass} bg-green-600`;
-                }
-            }
-           
+  let baseClass = "flex flex-col justify-center rounded-full overflow-hidden text-xs text-white text-center whitespace-nowrap transition duration-500";
+  if (Progress <= 25) {
+    return `${baseClass} bg-red-600`;
+  } else if (Progress <= 50) {
+    return `${baseClass} bg-blue-600`;
+  } else if (Progress <= 75) {
+    return `${baseClass} bg-yellow-300`;
+  } else {
+    return `${baseClass} bg-green-600`;
+  }
+}
+
+function toPersianNumber(input) {
+  const enToFaDigits = {
+    "0": "۰", "1": "۱", "2": "۲", "3": "۳", "4": "۴",
+    "5": "۵", "6": "۶", "7": "۷", "8": "۸", "9": "۹",
+  };
+  return String(input).replace(/\d/g, d => enToFaDigits[d] || d);
+}
+
+function slicedProgress(ali) {
+  return String(ali).slice(0, 5) + "%";
+}
+
 </script>
 
 <style>
@@ -434,5 +536,19 @@ function progressClass(Progress) {
     #myGrid.grid_res_me {
         grid-template-columns: 30% 68.5%; 
     }
+}
+.subStorescription-free {
+  background: linear-gradient(to right, #4fc20c, #89be0f);
+  color: white;
+}
+
+.subStorescription-silver {
+  background: linear-gradient(to right, #94a3b8, #cbd5e1, #64748b);
+  color: white;
+}
+
+.subStorescription-gold {
+  background: linear-gradient(to right, #facc15, #f59e0b, #d97706); 
+  color: white;
 }
 </style>

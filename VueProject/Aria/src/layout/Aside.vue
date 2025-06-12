@@ -72,7 +72,7 @@
                 <span class="mx-2 text-[15px] font-medium">مانیتورینگ</span>
             </RouterLink>
 
-            <RouterLink :to="{name:'issuess'}" class="flex items-center px-3 py-3 text-gray-600 transition-colors duration-300 transform rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 hover:text-gray-700" href="#">
+            <RouterLink  v-show="user.user.level==1 ||  ((Sub.manager_plan=='gold' || Sub.manager_plan=='silver') && Sub.manager_plan_active)" :to="{name:'issuess'}" class="flex items-center px-3 py-3 text-gray-600 transition-colors duration-300 transform rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 hover:text-gray-700" href="#">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2563eb" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"></path>
                   </svg>
@@ -83,7 +83,7 @@
             </RouterLink>
        
 
-            <RouterLink :to="{name:'metting'}" class="flex items-center px-3 py-3 text-gray-600 transition-colors duration-300 transform rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 hover:text-gray-700" href="#">
+            <RouterLink v-show="user.user.level==1 ||  (Sub.manager_plan=='gold' && Sub.manager_plan_active)" :to="{name:'metting'}" class="flex items-center px-3 py-3 text-gray-600 transition-colors duration-300 transform rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 hover:text-gray-700" href="#">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2563eb" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"></path>
                   </svg>
@@ -96,7 +96,7 @@
         </nav>
 
         <div>
-            <div class="flex items-center justify-between mt-8">
+            <div class="flex items-center justify-between mt-8" v-show="Sub.Permissions.addprject">
                 <h2 class="text-base font-semibold text-gray-800 dark:text-white">تعریف پروژه جدید</h2>
 
                 <RouterLink :to="{name:'addproject'}" class="p-0.5 hover:bg-gray-100 duration-200 transition-colors text-gray-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 border rounded-lg">
@@ -121,6 +121,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
                     </svg>
                 </RouterLink>
+                <RouterLink style="" :to="{name:'sub'}" class="flex items-center justify-between w-full px-3 py-3 text-xs font-medium text-gray-600 transition-colors duration-300 transform rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 hover:text-gray-700">
+                    <span class="flex items-center gap-x-2 ">
+                        <span class="w-2 h-2 bg-yellow-300 rounded-full"></span>
+                        <span> خرید اشتراک</span>
+                    </span>
+
+                </RouterLink>
                 
             </nav>
         </div>
@@ -136,8 +143,9 @@
 import { onMounted, reactive, toRefs, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useUserStore } from '@/stores/user';
+import { useSubStore } from '@/stores/SubStore';
 const user=useUserStore()
-
+const Sub=useSubStore()
 const myuser=reactive({
              avatar: null,
             id: null,

@@ -32,18 +32,18 @@ class ProjectDetail(APIView):
         print(developers_of_project)
         project_task_count = project.tasks.count()
         print(project_task_count)
-        user_projects = Project.objects.filter(project_manager=user).count() +  Project.objects.filter(
-    Q(user__email=user.email) & ~Q(project_manager=user)
-).count()
+        user_projects_count = Project.objects.filter(project_manager=user).count() + Project.objects.filter(
+            Q(users=user) & ~Q(project_manager=user)
+        ).count()
 
         questions = Question.objects.filter(task__project=project,status=1).count()
-        print(user_projects)
+        print(user_projects_count)
         print('questions:',questions)
         if False:
             return Response({"detail": "No data available"}, status=status.HTTP_204_NO_CONTENT)
         return Response({ 'developers_of_project': developers_of_project,
                               'project_task_count': project_task_count,
-                              'user_projects': user_projects,
+                              'user_projects': user_projects_count,
                               'questions':questions},
                                 status=status.HTTP_200_OK)
 class ReportingTasksListView(ListAPIView):

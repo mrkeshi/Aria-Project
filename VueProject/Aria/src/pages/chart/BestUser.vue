@@ -1,11 +1,11 @@
 <template>
        <section class=" dark:bg-gray-900">
                 <div class="container px-6 py-6 mx-auto">
-                    <h1 class="text-2xl font-semibold text-center text-gray-800 capitalize lg:text-3xl dark:text-white">برترین کاربران بر اساس تعداد تسک های انجام شده</h1>
+                    <h1 v-show="reporting.topuser[1]" class="text-2xl font-semibold text-center text-gray-800 capitalize lg:text-3xl dark:text-white">برترین کاربران بر اساس تعداد تسک های انجام شده</h1>
             
                 
             
-                    <div class="grid grid-cols-1 gap-8 mt-8 xl:mt-12 md:grid-cols-2 xl:grid-cols-4">
+                    <div v-show="reporting.topuser[1]" class="grid grid-cols-1 gap-8 mt-8 xl:mt-12 md:grid-cols-2 xl:grid-cols-4">
                    
             
                         <div v-for="user in reporting.topuser" class="flex flex-col items-center p-6 transition-colors duration-300 transform border cursor-pointer rounded-xl hover:border-transparent group hover:bg-blue-600 dark:border-gray-700 dark:hover:border-transparent">

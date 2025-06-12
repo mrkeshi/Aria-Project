@@ -24,10 +24,22 @@
 
 
 <script setup>
-import router from '@/router';
-import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useSubStore } from '@/stores/SubStore';
+import { ref,onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification';
+const toast=useToast()
+const router=useRouter()
+const subStore=useSubStore()
 
-
+onMounted(async ()=>{
+    await subStore.fetchSubscriptionStatus(useAuthStore().user.access);
+    if((!subStore.isActive || subStore.level<3) && (subStore.manager_plan!="gold" || !subStore.manager_plan_active)){
+        router.push({'name':'sub'})
+        toast.info("لطفا برای دسترسی به این قسمت اشتراک خود را فعال کنید.")
+    }
+})
 const ID=ref()
 
 const send=()=>{

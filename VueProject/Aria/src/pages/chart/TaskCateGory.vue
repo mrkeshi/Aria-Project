@@ -34,116 +34,125 @@
 </template>
 
 <script setup>
-const user=useAuthStore()
 import { getCategory } from '@/services/ReportService';
 import { useAuthStore } from '@/stores/auth';
 import { onMounted, ref } from 'vue';
-const obd=ref([])
-onMounted(async()=>{
-  await getCategory(user.user.access).then((res)=>{
+
+const user = useAuthStore();
+const obd = ref([]);
+
+onMounted(async () => {
+  try {
+    const res = await getCategory(user.user.access);
     res.data.forEach(task => {
-    obd.value.push({
-        label: task.skill_name,
-        count: task.task_count
+      if (
+        task.skill_name !== null &&
+        task.skill_name !== undefined &&
+        task.skill_name !== '' &&
+        task.task_count !== null &&
+        task.task_count !== undefined
+      ) {
+        obd.value.push({
+          label: task.skill_name.toString(),
+          count: Number(task.task_count)
+        });
+      }
     });
-});
-  })
+
+    if (obd.value.length === 0) {
+      obd.value.push({ label: "ندارد", count: 0 });
+    }
+
     const getChartOptions2 = () => {
-  return {
-    series:obd.value.map(item => item.count),
-    colors: ["#30DD59","#2889DB","#DB4F18", "#FFE85C", "#FDBA8C", "#E74694","#189F52","#114893","#30DD59","#3366FF","#930F2A"],
-    chart: {
-      height: 320,
-      width: "100%",
-      type: "donut",
-    },
-    stroke: {
-      colors: ["transparent"],
-      lineCap: "",
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          labels: {
-            show: true,
-            name: {
-              show: true,
-              fontFamily: "Inter, sans-serif",
-              offsetY: 20,
-            },
-            total: {
-              showAlways: true,
-              show: true,
-              label: "تعداد کل",
-              fontFamily: "Inter, sans-serif",
-              formatter: function (w) {
-                const sum = w.globals.seriesTotals.reduce((a, b) => {
-                  return a + b
-                }, 0)
-                return '' + sum + ''
+      return {
+        series: obd.value.map(item => item.count),
+        colors: ["#30DD59", "#2889DB", "#DB4F18", "#FFE85C", "#FDBA8C", "#E74694", "#189F52", "#114893", "#30DD59", "#3366FF", "#930F2A"],
+        chart: {
+          height: 320,
+          width: "100%",
+          type: "donut",
+        },
+        stroke: {
+          colors: ["transparent"],
+        },
+        plotOptions: {
+          pie: {
+            donut: {
+              labels: {
+                show: true,
+                name: {
+                  show: true,
+                  fontFamily: "Inter, sans-serif",
+                  offsetY: 20,
+                },
+                total: {
+                  showAlways: true,
+                  show: true,
+                  label: "تعداد کل",
+                  fontFamily: "Inter, sans-serif",
+                  formatter: function (w) {
+                    const sum = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                    return '' + sum + '';
+                  },
+                },
+                value: {
+                  show: true,
+                  fontFamily: "Inter, sans-serif",
+                  offsetY: -20,
+                  formatter: function (value) {
+                    return value + "";
+                  },
+                },
               },
-            },
-            value: {
-              show: true,
-              fontFamily: "Inter, sans-serif",
-              offsetY: -20,
-              formatter: function (value) {
-                return value + ""
-              },
+              size: "80%",
             },
           },
-          size: "80%",
         },
-      },
-    },
-    grid: {
-      padding: {
-        top: -2,
-      },
-    },
-    labels:obd.value.map(item => item.label),
-    dataLabels: {
-      enabled: false,
-    },
-    legend: {
-      position: "bottom",
-      fontFamily: "IRANYekanX, sans-serif",
-    },
-    yaxis: {
-      labels: {
-        formatter: function (value) {
-          return value + ""
+        grid: {
+          padding: {
+            top: -2,
+          },
         },
-      },
-    },
-    xaxis: {
-      labels: {
-        formatter: function (value) {
-          return value  + ""
+        labels: obd.value.map(item => item.label),
+        dataLabels: {
+          enabled: false,
         },
-      },
-      axisTicks: {
-        show: false,
-      },
-      axisBorder: {
-        show: false,
-      },
-    },
-  }
-}
+        legend: {
+          position: "bottom",
+          fontFamily: "IRANYekanX, sans-serif",
+        },
+        yaxis: {
+          labels: {
+            formatter: function (value) {
+              return value + "";
+            },
+          },
+        },
+        xaxis: {
+          labels: {
+            formatter: function (value) {
+              return value + "";
+            },
+          },
+          axisTicks: {
+            show: false,
+          },
+          axisBorder: {
+            show: false,
+          },
+        },
+      };
+    };
 
-if (document.getElementById("donut-chart") && typeof ApexCharts !== 'undefined') {
-    const chart = new ApexCharts(document.getElementById("donut-chart"), getChartOptions2());
-  chart.render();
+    if (document.getElementById("donut-chart") && typeof ApexCharts !== 'undefined') {
+      const chart = new ApexCharts(document.getElementById("donut-chart"), getChartOptions2());
+      chart.render();
 
-  // Get all the checkboxes by their class name
-  const checkboxes = document.querySelectorAll('#devices input[type="checkbox"]');
-
-  // Function to handle the checkbox change event
-  function handleCheckboxChange(event, chart) {
-      const checkbox = event.target;
-      if (checkbox.checked) {
-          switch(checkbox.value) {
+      const checkboxes = document.querySelectorAll('#devices input[type="checkbox"]');
+      function handleCheckboxChange(event, chart) {
+        const checkbox = event.target;
+        if (checkbox.checked) {
+          switch (checkbox.value) {
             case 'desktop':
               chart.updateSeries([15.1, 22.5, 4.4, 8.4]);
               break;
@@ -156,18 +165,19 @@ if (document.getElementById("donut-chart") && typeof ApexCharts !== 'undefined')
             default:
               chart.updateSeries([55.1, 28.5, 1.4, 5.4]);
           }
-
-      } else {
+        } else {
           chart.updateSeries([35.1, 23.5, 2.4, 5.4]);
+        }
       }
-  }
 
-  // Attach the event listener to each checkbox
-  checkboxes.forEach((checkbox) => {
-      checkbox.addEventListener('change', (event) => handleCheckboxChange(event, chart));
-  });
-}
-})
+      checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', (event) => handleCheckboxChange(event, chart));
+      });
+    }
+  } catch (error) {
+    console.error("خطا در دریافت داده‌ها:", error);
+  }
+});
 </script>
 
 <style>

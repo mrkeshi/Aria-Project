@@ -12,6 +12,7 @@
   "dependencies": {
     "@zegocloud/zego-uikit-prebuilt": "^2.14.0",
     "axios": "^1.7.7",
+    "dayjs": "^1.11.13",
     "pinia": "^2.2.4",
     "sticky-sidebar": "^3.3.1",
     "vue": "^3.5.12",

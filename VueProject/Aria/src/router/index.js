@@ -84,6 +84,31 @@ component:()=>import('../pages/metting/video.vue'),
       ]
         },
         {
+          path: 'sub/',
+          children:[
+            {
+            path: '',
+            name: 'sub',
+            component: () => import('../pages/SubsCription/tables.vue'),
+        },
+        {
+          path: 'detail',
+          name: 'detail',
+          component: () => import('../pages/SubsCription/detail.vue'),
+      },
+      {
+        path: 'confirmSub',
+        name: 'confirmSub',
+        component: () => import('../pages/SubsCription/confirm.vue'),
+    },
+    {
+      path: 'verify/',
+      name: 'resultSub',
+      component: () => import('../pages/SubsCription/Success.vue'),
+  },
+      ]
+        },
+        {
             path:"metting/",
             name:'metting',
             component: () => import('../pages/metting/index.vue'),
