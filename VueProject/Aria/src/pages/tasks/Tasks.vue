@@ -108,9 +108,9 @@
 
                                              </td>
                                            
-                                              <td class=" py-4 text-sm font-medium ">
-                                                <span class="bg-yellow-300 text-white p-2 rounded-sm" style="border-radius: 5px;" v-if="task.rate">{{ task.rate }}</span>
-                                                <span class="bg-yellow-300 text-white p-2 rounded-sm" style="border-radius: 5px;" v-else> بدون امتیاز</span>
+                                              <td class=" py-4 text-sm font-medium " style="width: 200px;">
+                                                <span class="bg-yellow-300 text-white p-2 rounded-sm" style="border-radius: 5px;width: 200px;" v-if="task.rate">{{ task.rate }}</span>
+                                                <span class="bg-yellow-300 text-white p-2 rounded-sm" style="border-radius: 5px;width: 200px !important;" v-else> بدون امتیاز</span>
 
                                              </td>
                                              <td class="px-4 py-4 text-sm font-medium whitespace-nowrap" v-text="convertToJalali(task.finished_at)">

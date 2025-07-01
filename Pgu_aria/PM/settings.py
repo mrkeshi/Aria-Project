@@ -52,7 +52,9 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'drf_spectacular_sidecar',
     'issue_module',
-    'django_filters'
+    'django_filters',
+    'Subcription',
+    'notification'
 
 ]
 
@@ -199,7 +201,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ.get("EMAIL_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 EMAIL_USE_TLS = True
-SEND_TASK_CREATION_EMAIL = True
+SEND_TASK_CREATION_EMAIL = False
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Your Project API',
@@ -207,3 +209,34 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+ZARINPAL_MERCHANT_ID = '31f44ef2-1f66-4a10-8d75-859a632024e7'
+FRONTEND_BASE_URL="http://localhost:4433"
+
+SUBSCRIPTION_LIMITS = {
+    "free": {
+        "max_projects": 1,
+        "max_tasks_per_project": 10,
+        "max_users_per_project": 3,
+        "issue":False
+    },
+    "silver": {
+        "max_projects": 5,
+        "max_tasks_per_project": 50,
+        "max_users_per_project": 10,
+        "issue":True
+    },
+    "gold": {
+        "max_projects": None,
+        "max_tasks_per_project": None,
+        "max_users_per_project": None,
+"issue":True
+    },
+}
+
+
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+# notifications settings
+ONESIGNAL_APP_ID = "f5669b06-a3c7-4dbb-90be-94b14ae50a97"
+ONESIGNAL_REST_API_KEY = "os_v2_app_6vtjwbvdy5g3xef6ssyuvziks4vhaz64d4au2lfiuibgs5bmt4lnl3zhzkknm6k6paz43n4bbxeft7bxezki5uimrcxb6hkwb3ai3ji"

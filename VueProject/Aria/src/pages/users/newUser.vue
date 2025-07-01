@@ -32,7 +32,12 @@
                     </div>
                 </div>    
             </div>
-           
+           <section class="w-full px- mx-auto" v-if="!Sub.Permissions.adduser"> 
+            <div class="mx-6 my-4 p-4 rounded-lg border border-red-300 bg-red-100 text-red-800 text-right">
+          <strong class="block font-bold mb-1">هشدار</strong>
+          شما به <span class="font-semibold">محدودیت تعداد کاربران پروژه</span> در پلن فعلی خود رسیده‌اید. برای افزودن کاربران بیشتر، لطفاً پلن اشتراک خود را ارتقا دهید.
+        </div>
+           </section>
 
             <section class=" w-full px-4 mx-auto ">
                 <div style="position: relative;" class="flex items-center shadow-md mt-8 max-lg:mt-4 bg-white w-full max-w-3xl p-8 mx-auto lg:px-12 lg:w-3/5">
@@ -138,6 +143,8 @@ import { useProjectStore } from '@/stores/project';
 import { RouterLink } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { getSkils } from '@/services/skil';
+import { useSubStore } from '@/stores/SubStore';
+
 const loading = ref(false)
 
 const proj=useProjectStore()
@@ -176,7 +183,9 @@ const send = async () => {
 
 
 }
+const Sub=useSubStore()
 onMounted(async()=>{
+    await Sub.fetchSubscriptionStatus(auth.user.access);
     if(userstore.user.level>1){
         toast.warning("شما به این صفحه دسترسی ندارید")
         router.push('/dashboard/')

@@ -50,17 +50,26 @@
   <svg class="hidden size-6" id="close" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokewidth="{1.5}" stroke="#fff">
     <path strokelinecap="round" strokelinejoin="round" d="M6 18 18 6M6 6l12 12"></path>
   </svg>
-  
+
 </div>
 </template>
 
 <script setup>
+
+import NotAllow from '@/NotAllow.vue';
 import { singleProject } from '@/services/projects';
 import { useAuthStore } from '@/stores/auth';
+import { useSubStore } from '@/stores/SubStore';
 import { useUserStore } from '@/stores/user';
+
 import { onMounted, ref, watch } from 'vue';
 const projectname=ref(null)
+const subStore = useSubStore();
+const auth = useAuthStore();
+onMounted(async () => {
+    await subStore.fetchSubscriptionStatus(auth.user.access);
 
+})
 async function getprojectName(){
   if (user.user.current_project != null) {
      
@@ -78,7 +87,6 @@ onMounted(async ()=>{
 })
 
 const user=useUserStore()
-const auth=useAuthStore()
 function logoutEvent(){
     auth.logoutAction()
 }

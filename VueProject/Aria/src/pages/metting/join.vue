@@ -24,10 +24,22 @@
 
 
 <script setup>
-import router from '@/router';
-import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useSubStore } from '@/stores/SubStore';
+import { ref,onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification';
+const toast=useToast()
+const router=useRouter()
+const subStore=useSubStore()
 
-
+onMounted(async ()=>{
+    await subStore.fetchSubscriptionStatus(useAuthStore().user.access);
+    if((!subStore.isActive || subStore.level<3) && (subStore.manager_plan!="gold" || !subStore.manager_plan_active)){
+        router.push({'name':'dashbaord'})
+        toast.info("قابلیت کنفرانس ویدئویی توسط مدیر پروژه فعال نشده است.")
+    }
+})
 const ID=ref()
 
 const send=()=>{

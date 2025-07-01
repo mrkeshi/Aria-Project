@@ -12,27 +12,37 @@
     import Header from '@/layout/IssuesLayout/Header.vue'
     import { useAuthStore } from '@/stores/auth';
     import { getDetailuser } from '@/services/user';
-    import { useRoute } from 'vue-router';
+    import { useRoute, useRouter } from 'vue-router';
     import { RouterView } from 'vue-router';
     import { useUserStore } from '@/stores/user';
-    import router from '@/router';
     const route=useRoute()
     const user=useUserStore()
     import { onBeforeMount, onMounted, ref } from 'vue';
+    import { useToast } from 'vue-toastification';
+    import { useSubStore } from '@/stores/SubStore';
     const auth=useAuthStore()
     const isLoading = ref(true);
-
+    const toast=useToast()
+    const router=useRouter()
+    const subStore=useSubStore()
 
     onMounted(async ()=>{
-      
-      await auth.verifyAction(route.path)
+    await subStore.fetchSubscriptionStatus(useAuthStore().user.access);
+    if((!subStore.isActive || subStore.level<3) && (subStore.manager_plan=="free" || !subStore.manager_plan_active)){
+      router.push({'name':'sub'})
+        toast.info("لطفا برای دسترسی به این قسمت اشتراک خود را فعال کنید.")
+    }
+})
+        onMounted(async ()=>{
+          
+          await auth.verifyAction(route.path)
 
-      await user.getDetail()
-      await user.getLeveAction(user.user.id)
-     isLoading.value=false
+          await user.getDetail()
+          await user.getLeveAction(user.user.id)
+        isLoading.value=false
 
-      
-   })
+          
+      })
 
 
 

@@ -28,6 +28,8 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
     path('workspace/',include('workspace_module.urls')),
     path('reporting/',include('workspace_module.reporting_urls')),
+    path('subscription/', include('Subcription.urls')),
+    path('noti/', include('notification.urls')),
 
     path('tasks/', include('workspace_module.task_urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

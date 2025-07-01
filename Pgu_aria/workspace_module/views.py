@@ -1,9 +1,14 @@
+from time import timezone
+
 import pytz
 from django.contrib.auth.hashers import make_password
 from django.db.models import Q, When,Case
 from django.shortcuts import get_object_or_404
 from django.core.validators import validate_email
 from rest_framework import generics
+from django.conf import settings
+from django.utils import timezone
+from Subcription.models import Subscription
 from .emails import send_invitation_email, send_task_creation_email
 from rest_framework import exceptions
 from rest_framework.decorators import action
@@ -21,6 +26,31 @@ from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import TaskFilterSet
 
+# تابع چکک کردن پرمیشن
+def check_task_limit_for_project(project):
+    manager = project.project_manager
+    try:
+        subscription = Subscription.objects.get(user=manager)
+    except Subscription.DoesNotExist:
+        raise RestFrameWorkValidationError("مدیر پروژه اشتراکی ندارد. لطفاً اشتراک تعریف شود.")
+
+    now = timezone.now()
+
+
+    if not subscription.is_active or (subscription.expires_at and subscription.expires_at < now):
+        raise RestFrameWorkValidationError("پلن اشتراک مدیر پروژه غیرفعال یا منقضی شده است. لطفاً تمدید شود.")
+
+
+    subscription_limits = getattr(settings, "SUBSCRIPTION_LIMITS", {})
+    plan_limits = subscription_limits.get(subscription.plan, {})
+
+    max_tasks = plan_limits.get("max_tasks_per_project", None)
+
+    if max_tasks is not None and Task.objects.filter(project=project).count() >= max_tasks:
+        raise RestFrameWorkValidationError(
+            f"تعداد تسک‌های این پروژه به سقف مجاز در پلن «{subscription.plan}» رسیده است."
+        )
+
 # User = get_user_model()
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
@@ -30,13 +60,27 @@ class ProjectViewSet(viewsets.ModelViewSet):
     #     if self.request.method == "GET":
     #         return ListProjectSerializer
     #     return ProjectSerializer
+
     def get_queryset(self, *args):
         user = self.request.user
         if user is not None:
 
             return Project.objects.filter(project_manager=user.id)
-    
+
     def perform_create(self, serializer):
+
+        # چک کردن پرمیشن
+        if hasattr(self.request.user, 'subscription') and self.request.user.subscription is not None:
+            if(self.request.user.subscription.is_active):
+                print("\n\n\n -----------------hi---------\n\n\n")
+
+                plan=self.request.user.subscription.plan
+                max_projects = settings.SUBSCRIPTION_LIMITS[plan]['max_projects']
+                if(max_projects<=Project.objects.filter(project_manager=self.request.user).count()):
+                    return Response({"message": "Max Project"}, status=404)
+
+
+
         project=serializer.save(project_manager=self.request.user)
         if(self.request.user.current_project):
             pass
@@ -191,6 +235,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 
 
+# مدیریت تسک ها
+
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
@@ -207,7 +253,7 @@ class ProjectOwnerManageTaskViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskFilterSet
     def perform_create(self, serializer):
-        print("Hi")
+        check_task_limit_for_project(self.request.user.current_project)
         task_instance = serializer.save(creator=self.request.user,project = self.request.user.current_project)
         if task_instance.finished_at and task_instance.finished_at < task_instance.created_at:
             task_instance.delete()
@@ -242,15 +288,18 @@ class ProjectOwnerManageTaskViewSet(viewsets.ModelViewSet):
             return TaskSerializerRead
         return super().get_serializer_class()
 
+
+
 class MangeTaskBySeniorOrManager(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = TaskFilterSet
     """senior  creator of task or project manager have full access to change task """
     serializer_class = TaskSeniorUserSerializer
     permission_classes = [IsProjectManagerOrSenior,IsAuthenticated]
+
     def perform_create(self, serializer):
 
-
+        check_task_limit_for_project(self.request.user.current_project)
         task_instance =serializer.save(creator=self.request.user.id,project=self.request.user.current_project)
         if task_instance.finished_at and task_instance.finished_at < task_instance.created_at:
             task_instance.delete()
@@ -380,34 +429,56 @@ class InviteUserViewSet(viewsets.ViewSet):
         return Response(data, status=status.HTTP_200_OK)
 
 
-    def create(self, request, **kwargs):    
+
+    def create(self, request, **kwargs):
         inviter_email = self.request.user.email
         to_email = request.data.get('to_email')
-        project = get_object_or_404(Project,id=self.kwargs.get('project_pk'))
+        project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
         skill = get_object_or_404(Skill, id=request.data.get('skill'))
-        level=request.data.get('level')
+        level = request.data.get('level')
         try:
             validate_email(to_email)
             validate_email(inviter_email)
-            islogin=0
-            if User.objects.filter(email=to_email).exists()== False:
-                islogin=1
+            try:
+                subscription = project.project_manager.subscription
+                now = timezone.now()
+                if subscription.expires_at and subscription.expires_at < now:
+                    plan = "free"
+                else:
+                    plan = subscription.plan
+            except Subscription.DoesNotExist:
+                plan = "free"
 
-                user = User.objects.create(email=to_email, password=make_password(to_email),current_project=project)
-                print(user)
-            
-            users_project = project.users.all()            
+            limits = settings.SUBSCRIPTION_LIMITS.get(plan, {})
+            max_users = limits.get("max_users_per_project")
 
-            if users_project.filter(email=to_email).exists() or project.project_manager.email == to_email :
-                return Response({'message': 'این کاریر در پروژه عضو است'}, status=status.HTTP_400_BAD_REQUEST)
+            current_users_count = project.users.count()
+            if max_users is not None and current_users_count >= max_users:
+                return Response({'message': f'شما به حداکثر تعداد کاربران پروژه ({max_users}) رسیده‌اید.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            islogin = 0
+            if not User.objects.filter(email=to_email).exists():
+                islogin = 1
+                user = User.objects.create(email=to_email, password=make_password(to_email), current_project=project)
+
+            users_project = project.users.all()
+
+            if users_project.filter(email=to_email).exists() or project.project_manager.email == to_email:
+                return Response({'message': 'این کاربر در پروژه عضو است'}, status=status.HTTP_400_BAD_REQUEST)
+
             user = get_object_or_404(User, email=to_email)
             project.users.add(user)
-            Role.objects.create(user=get_object_or_404(User,email=to_email), project=project, skill=skill, level=level)
-                
-            send_invitation_email(inviter_email, to_email, project=project, project_id=self.kwargs['project_pk'], level=level, skill=skill.name,islogin=islogin)
+            Role.objects.create(user=user, project=project, skill=skill, level=level)
+
+            send_invitation_email(inviter_email, to_email, project=project, project_id=self.kwargs['project_pk'],
+                                  level=level, skill=skill.name, islogin=islogin)
+
             return Response({'message': 'ایمیل دعوت ارسال شد.'}, status=status.HTTP_200_OK)
+
         except ValidationError:
             raise exceptions.ValidationError('آدرس ایمیل نامعتبر است.')
+
 
 class AcceptInviteUserViewSet(APIView):
     def post(self, request, *args, **kwargs):
@@ -471,7 +542,7 @@ class DeleteUserProjectViewSets(viewsets.GenericViewSet, mixins.DestroyModelMixi
         return Project.objects.filter(pk=project_id).first().only('users')
     
     def delete(self, request, *args, **kwargs):
-        project_id = self.request.user.current_project.id    
+        project_id = self.request.user.current_project.id
         project = Project.objects.filter(pk=project_id).first()
         user_id = self.kwargs.get('user_id')
         user = get_object_or_404(User, pk=user_id)

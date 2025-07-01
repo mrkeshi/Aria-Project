@@ -14,6 +14,9 @@
 import { RouterView } from 'vue-router';
 import Header from '../layout/Header.vue'
 import Aside from '../layout/Aside.vue'
+import { useSubStore } from '@/stores/SubStore';
+import { useAuthStore } from '@/stores/auth';
+import { onMounted } from 'vue';
 
 </script>
 

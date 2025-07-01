@@ -63,11 +63,17 @@
     </template>
     
     <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref,onMounted } from 'vue'
+const router=useRouter()
 import { useAuthStore } from '@/stores/auth';
+
+const Sub=useSubStore()
 
 const User=useAuthStore()
 import { useProjectStore } from '@/stores/project';
+import { useSubStore } from '@/stores/SubStore';
+import { useToast } from 'vue-toastification';
+import { useRouter } from 'vue-router';
 const loading = ref(false)
 const proj=useProjectStore()
 const info = reactive({
@@ -75,7 +81,16 @@ const info = reactive({
     description: '',
 
 });
+const toast=useToast()
+onMounted(async() => {
+    await Sub.fetchSubscriptionStatus(User.user.access);
 
+  if((!Sub.Permissions.addprject) || !((Sub.isActive) || Sub.countDetail.project==0)){
+  toast.info("جهت اضافه کردن پروژه های بیشتر لطفا اشتراکتان را ارتقا دهید")
+    return router.push({name:'sub'})  
+  
+    }
+    })
 const send = async () => {
     if (!loading.value) {
         loading.value=true

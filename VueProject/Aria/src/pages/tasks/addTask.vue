@@ -1,9 +1,22 @@
 <template>
     <div>
+    
         <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8 px-4 ">
                 <h1 class="text-gray-700 font-bold text-xl">اضافه کردن تسک جدید</h1>
                 <p class="text-gray-600 text-sm text-wrap">شما در این قسمت می توانید تسک جدیدی به پروژه اضافه کنید</p>
-             
+            <section v-if="!Sub.Permissions.addtask">
+                <br>
+                <div class="w-full my-8 p-4 border border-yellow-400 bg-yellow-100 text-yellow-800 rounded-lg  flex items-start rtl:space-x-reverse space-x-4 text-right" dir="rtl">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mt-1 text-yellow-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 5.5a7 7 0 100 13.999A7 7 0 0012 5.5z" />
+  </svg>
+  <div class="flex-1">
+    <h4 class="font-bold text-base mb-1">محدودیت تسک‌ها</h4>
+    <p class="text-sm">شما به محدودیت تعداد اضافه کردن تسک رسیدید. لطفا برای ادامه، حساب خود را ارتقاء دهید.</p>
+  </div>
+</div>
+
+            </section>         
                 <div class="flex w-full flex-wrap max-md:justify-center justify-end mx-2 mt-6 ">
               
                     <div class="flex flex-wrap ">
@@ -161,10 +174,11 @@ import { useTaskStore } from '@/stores/TaskStore';
 import { getSkils } from '@/services/skil';
 import { getUserWithSkilService } from '@/services/TaskServices';
 import { useToast } from 'vue-toastification';
+import { useSubStore } from '@/stores/SubStore';
 const taskStore=useTaskStore();
 const loading = ref(false)
 
-
+const Sub=useSubStore()
 
 
 async function  getUsersWithSkil()  {
@@ -185,6 +199,29 @@ async function  getUsersWithSkil()  {
 }
 
 onMounted(async()=>{
+    await Sub.fetchSubscriptionStatus(auth.user.access);
+
+    if (!window.jalaliDatepicker) {
+    const script = document.createElement('script')
+    script.src = '/assets/js/Datepicker.min.js' 
+    script.onload = () => {
+     
+      if (window.jalaliDatepicker) {
+        window.jalaliDatepicker.startWatch({
+    'time': true ,
+      minDate: "attr",
+  maxDate: "attr"
+});
+      }
+    }
+    document.head.appendChild(script)
+  } else {
+    window.jalaliDatepicker.startWatch({
+    'time': true ,
+      minDate: "attr",
+  maxDate: "attr"
+});
+  }
     if(userstore.user.level>2){
         toast.warning("شما به این صفحه دسترسی ندارید")
         router.push('/dashboard/')
@@ -254,11 +291,11 @@ function jalali_to_gregorian(jy, jm, jd) {
    
   })
 
-jalaliDatepicker.startWatch({
-    'time': true ,
-      minDate: "attr",
-  maxDate: "attr"
-});
+// jalaliDatepicker.startWatch({
+//     'time': true ,
+//       minDate: "attr",
+//   maxDate: "attr"
+// });
 
 
 

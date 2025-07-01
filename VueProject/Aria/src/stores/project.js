@@ -3,6 +3,7 @@ import { editProject, getProjects, setProject, singleProject,setCurrentProject, 
 import { useToast } from "vue-toastification";
 import router from "@/router";
 import { useUserStore } from "./user";
+import { useReportStore } from "./Reporting";
 const toast = useToast();
 
 export const useProjectStore = defineStore({
@@ -62,7 +63,8 @@ export const useProjectStore = defineStore({
                     const usr=useUserStore()
                     usr.user.current_project=null
                     this.getprojects(token)
-
+                    const re=useReportStore()
+                 
                     router.push('/dashboard')
 
                 }else{

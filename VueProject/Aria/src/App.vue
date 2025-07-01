@@ -8,7 +8,7 @@
   <RouterView/>
 </template>
 
-<style setup>
+<style >
 
 
 </style>
