@@ -35,7 +35,6 @@ const active=(email)=>{
 }
 
 const forgotpass=(email)=>{
-    console.log(email)
     return axios.post("auth/users/reset_password/",{
         "email":email
     })

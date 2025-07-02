@@ -30,7 +30,6 @@ export const useUserStore=defineStore({
     
         async getDetail(){
                await getDetailuser(auth.user.access).then((response)=>{
-                console.log(auth.user.access)
 
                     if(!response.data.current_project){
 
@@ -53,7 +52,6 @@ export const useUserStore=defineStore({
         },
         async getLeveAction(id){
             await getLevel(id,auth.user.access).then((response)=>{
-                console.log(response)
                 this.user.level=response.data.level
                 this.user.rollname=response.data.skill
             }).catch((er)=>{

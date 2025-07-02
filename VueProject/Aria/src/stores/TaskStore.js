@@ -21,7 +21,6 @@ export const useTaskStore=defineStore({
        
         async ShowallTaskAction(){
           
-            console.log(auth.user)
             return await ShowTasksAdmin(auth.user.access).then((res)=>{
 
                 this.tasks=res.data

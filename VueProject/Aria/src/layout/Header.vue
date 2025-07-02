@@ -74,7 +74,6 @@ async function getprojectName(){
   if (user.user.current_project != null) {
      
      await singleProject(auth.user.access,user.user.current_project).then((response)=>{
-           console.log("RESPPONSE",response.data.title)
        projectname.value=response.data.title
      });
    } 

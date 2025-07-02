@@ -70,7 +70,6 @@ export const useProjectStore = defineStore({
                 }else{
                     this.getprojects(token)
                 }
-                console.log("projects",this.projects)
              
 
             }).catch((error)=>{

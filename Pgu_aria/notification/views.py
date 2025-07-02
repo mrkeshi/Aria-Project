@@ -1,35 +1,43 @@
-from django.shortcuts import render
-
-# Create your views here.
-from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import OneSignalSubscription
-from .serializers import OneSignalSubscriptionSerializer
+from rest_framework import status
 
-class SaveOneSignalIdView(APIView):
+from .models import PushSubscription
+from .serializers import PushSubscriptionSerializer
+
+
+class SavePushSubscriptionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        onesignal_user_id = request.data.get('onesignal_user_id')
+        subscription_info = request.data.get('subscription_info')
 
-        if not onesignal_user_id:
-            return Response({"detail": "onesignal_user_id is required."}, status=400)
+        if not subscription_info:
+            return Response({"detail": "subscription_info is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        obj, created = OneSignalSubscription.objects.update_or_create(
+        # اگر تو subscription_info یه شناسه یکتا (مثلاً endpoint یا keys) داری،
+        # اون رو برای update یا create استفاده کن:
+        endpoint = subscription_info.get("endpoint")
+        if not endpoint:
+            return Response({"detail": "subscription_info must contain 'endpoint'."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        obj, created = PushSubscription.objects.update_or_create(
             user=request.user,
-            defaults={"onesignal_user_id": onesignal_user_id}
+            subscription_info__endpoint=endpoint,
+            defaults={"subscription_info": subscription_info}
         )
-        return Response({"status": "saved", "created": created})
+
+        serializer = PushSubscriptionSerializer(obj)
+        return Response({"status": "saved", "created": created, "data": serializer.data}, status=status.HTTP_200_OK)
 
 
-class SubscriptionStatusView(APIView):
+class PushSubscriptionStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            obj = request.user.onesignal
-            return Response({"subscribed": True, "onesignal_user_id": obj.onesignal_user_id})
-        except OneSignalSubscription.DoesNotExist:
-            return Response({"subscribed": False})
+        subscriptions = request.user.push_subscriptions.all()
+        serializer = PushSubscriptionSerializer(subscriptions, many=True)
+        subscribed = subscriptions.exists()
+        return Response({"subscribed": subscribed, "data": serializer.data})

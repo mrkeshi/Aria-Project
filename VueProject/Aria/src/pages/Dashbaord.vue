@@ -428,7 +428,6 @@ onMounted(async () => {
   const now = dayjs().startOf('day');
 
   const total = end.diff(start, 'day');
-  console.log(total)
   let used = now.diff(start, 'day');
 
   if (used < 0) used = 0;   

@@ -1,7 +1,10 @@
 from rest_framework import serializers
-from .models import OneSignalSubscription
+from .models import PushSubscription
 
-class OneSignalSubscriptionSerializer(serializers.ModelSerializer):
+class PushSubscriptionSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+
     class Meta:
-        model = OneSignalSubscription
-        fields = ['onesignal_user_id']
+        model = PushSubscription
+        fields = ['user', 'subscription_info', 'subscribed_at']
+        read_only_fields = ['user', 'subscribed_at']

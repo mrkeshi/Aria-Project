@@ -65,7 +65,6 @@ export const useAuthStore=defineStore({
             if(userlocal){
             await verify(userlocal.access).then((response)=>{
                 this.user.access=userlocal.access
-               console.log("SETTTTTT TOOKEN JWT")
 
                 this.user.refresh=userlocal.refresh
                 this.user.email=userlocal.email

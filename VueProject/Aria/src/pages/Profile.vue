@@ -136,7 +136,6 @@ const userstore=useUserStore()
     if (!loading.value) {
     loading.value=true
     await userstore.updateProfileAction(user,av)
-    console.log('من اینجام')
 loading.value=false
   }
 }

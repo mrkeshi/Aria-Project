@@ -2,93 +2,85 @@
   <div v-if="showPermissionDialog">
     <div class="overlay"></div>
     <div class="permission-dialog">
-      <p>آیا مایل هستید اعلان‌های مربوط به وظایف خود را دریافت کنید؟</p>
-      <div class="buttons">
-        <button class="green" @click="askNotificationPermission">بله</button>
-        <button class="red" @click="dismiss">خیر</button>
+      <div v-if="showGuide">
+        <p>لطفا از منوی سمت چپ گزینه <strong>فعال‌سازی</strong> را کلیک کنید.</p>
+        <div class="loading"></div>
+      </div>
+
+      <div v-else>
+        <p>آیا مایل هستید اعلان‌های مربوط به وظایف خود را دریافت کنید؟</p>
+        <div class="buttons">
+          <button class="green" @click="requestPermission">بله</button>
+          <button class="red" @click="dismiss">خیر</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
+import { useNotificationStore } from "@/stores/notificationStore";
+import { useAuthStore } from "@/stores/auth";
+import { onMounted } from "vue";
+const showPermissionDialog = ref(false);
+const showGuide = ref(false);
 
-const showPermissionDialog = ref(true);
-const oneSignalLoaded = ref(false);
+const notification = useNotificationStore();
+const auth = useAuthStore();
 
 onMounted(() => {
-  // بارگذاری SDK فقط یک بار
-  if (!window.OneSignal) {
-    const script = document.createElement("script");
-    script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
-    script.async = true;
-    script.onload = initOneSignal;
-    document.head.appendChild(script);
-  } else {
-    initOneSignal();
+  if (Notification.permission === "default") {
+    showPermissionDialog.value = true;
   }
 });
 
-function initOneSignal() {
-  window.OneSignal = window.OneSignal || [];
-  const OneSignal = window.OneSignal;
+async function requestPermission() {
+  if (!("Notification" in window)) {
+    alert("این مرورگر از اعلان پشتیبانی نمی‌کند.");
+    showPermissionDialog.value = false;
+    return;
+  }
 
-  OneSignal.push(function () {
-    OneSignal.init({
-      appId: "f5669b06-a3c7-4dbb-90be-94b14ae50a97",
-      allowLocalhostAsSecureOrigin: true,
-      serviceWorkerPath: "/OneSignalSDKWorker.js",
-      serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js",
-    });
+  showGuide.value = true;
 
-    oneSignalLoaded.value = true;
-  });
-}
+  Notification.requestPermission().then(async permission => {
+    if (permission === "granted") {
+      showTestNotification();
 
-async function askNotificationPermission() {
-  if (!oneSignalLoaded.value) return;
 
-  const OneSignal = window.OneSignal;
+      const token = auth.user.access;
+     
+      if (token) {
+        console.log("2:",token)
 
-  OneSignal.push(async function () {
-    const isEnabled = await OneSignal.isPushNotificationsEnabled();
-    if (isEnabled) {
-      showPermissionDialog.value = false;
-      getUserId();
-    } else {
-      try {
-        await OneSignal.showSlidedownPrompt();
-        showPermissionDialog.value = false;
-        getUserId();
-      } catch (e) {
-        console.log("User denied notification permission or error:", e);
-        showPermissionDialog.value = false;
+        await notification.subscribeUser(token);
       }
     }
+
+    showPermissionDialog.value = false;
+    showGuide.value = false;
   });
 }
 
-function getUserId() {
-  const OneSignal = window.OneSignal;
-  OneSignal.getUserId().then((userId) => {
-    console.log("OneSignal User ID:", userId);
+function showTestNotification() {
+  new Notification("اعلان فعال شد!", {
+    body: "شما اجازه دریافت اعلان‌ها را صادر کردید.",
+    icon: "/img/ali.png"
   });
 }
 
 function dismiss() {
   showPermissionDialog.value = false;
-  console.log("User dismissed the permission prompt");
 }
 </script>
+
 
 <style scoped>
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(6px);
   z-index: 9998;
@@ -96,8 +88,7 @@ function dismiss() {
 
 .permission-dialog {
   position: fixed;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   background: #fff;
   border-radius: 12px;
@@ -130,7 +121,6 @@ button {
 button.green {
   background-color: #4caf50;
 }
-
 button.green:hover {
   background-color: #388e3c;
 }
@@ -138,8 +128,24 @@ button.green:hover {
 button.red {
   background-color: #f44336;
 }
-
 button.red:hover {
   background-color: #d32f2f;
+}
+
+.loading {
+  margin-top: 20px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4caf50;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

@@ -1,9 +1,9 @@
 import axios from "@/utils/axios";
 
-export const saveOneSignalUserId = async (userId, token) => {
+export const savePushSubscription = async (subscriptionInfo, token) => {
   const response = await axios.post(
-    "noti/save-onesignal-userid/",
-    { userId },
+    "noti/push/save/",
+    { subscription_info: subscriptionInfo },
     {
       headers: {
         Authorization: `JWT ${token}`,

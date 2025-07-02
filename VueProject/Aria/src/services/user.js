@@ -10,7 +10,6 @@ const getDetailuser=(token)=>{
 }
 const updateProfile=(token,info,email,avatar)=>{
 
-    console.log("avatar: ",avatar)
 
     return axios.put("auth/users/me/",{
         "avatar":avatar,
@@ -30,7 +29,6 @@ const updateProfile=(token,info,email,avatar)=>{
 }
 const addUser=(token,info,id)=>{
 
-    console.log(info)
     return axios.post(`workspace/project/${id}/email/`,{
         "to_email":info.email,
         "level": info.level,
@@ -61,7 +59,6 @@ const deleteuserService=(token,id,userId)=>{
 }
 
 const getLevel=(id,token)=>{
-   console.log("token:",token)
     return axios.get(`workspace/project/${id}/get_user_level_skill`,{headers: {
         Authorization: `JWT ${token}`,
     }

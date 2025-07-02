@@ -1,3 +1,5 @@
+from django.contrib.auth import get_user_model
+from django.utils.timezone import now
 
 from ..models import *
 from workspace_module.models import Project
@@ -6,9 +8,14 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from notification.utils import send_onesignal_notification
-from notification.models import OneSignalSubscription
 from workspace_module.models import Task
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from notification.models import PushSubscription
+from pywebpush import webpush, WebPushException
+import json
+import logging
 
 @receiver(post_save, sender=Project)
 def create_role_for_pm(sender, created, instance, **kwargs):
@@ -33,18 +40,47 @@ def create_free_subscription_on_first_project(sender, instance, created, **kwarg
                 is_active=True
             )
 
+logger = logging.getLogger(__name__)
+
 @receiver(post_save, sender=Task)
-def send_task_assignment_notification(sender, instance, created, **kwargs):
-    if created and instance.assigned:
-        try:
-            subscription = OneSignalSubscription.objects.get(user=instance.assigned)
-            onesignal_user_id = subscription.onesignal_user_id
+def task_created_notification(sender, instance, created, **kwargs):
+    if not created:
+        return
 
-            heading = "تسک جدید اختصاص یافته"
-            message = f"تسک '{instance.title}' در پروژه '{instance.project.title}' توسط مدیر پروژه برای شما اختصاص پیدا کرده است."
+    assigned_user = instance.assigned
+    creator = instance.creator
+    project = instance.project
 
-            send_onesignal_notification(onesignal_user_id, heading, message)
-        except OneSignalSubscription.DoesNotExist:
-            pass
-        except Exception as e:
-            print(f"خطا در ارسال نوتیفیکیشن تسک: {e}")
+    if not assigned_user:
+        return
+    duration=duration = (instance.finished_at-instance.created_at).days
+    message = f"تسک با مدت زمان {duration} روز برای شما توسط {creator.get_full_name() or creator.email} در پروژه {project.title} ایجاد شد."
+
+    try:
+        subscription = PushSubscription.objects.get(user=assigned_user)
+    except PushSubscription.DoesNotExist:
+        logger.warning(f"No push subscription for user {assigned_user}")
+        return
+    user = instance.assigned
+    user.current_project = instance.project
+    user.save()
+    print(settings.FRONTEND_BASE_URL+"/dashboard/tasks" + str(instance.id))
+    payload = json.dumps({
+        "title": "تسک جدید",
+        "body": message,
+        "icon": "/img/ali.png",
+        "url": settings.FRONTEND_BASE_URL+"/dashboard/tasks/" + str(instance.id)
+    })
+
+
+    try:
+        webpush(
+            subscription_info=subscription.subscription_info,
+            data=payload,
+            vapid_private_key=settings.VAPID_PRIVATE_KEY,
+            vapid_claims=settings.VAPID_CLAIMS
+        )
+        logger.info(f"Push notification sent to user {assigned_user}")
+    except WebPushException as ex:
+        logger.error(f"Web push failed: {repr(ex)}")
+

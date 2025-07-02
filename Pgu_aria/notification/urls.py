@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import SaveOneSignalIdView, SubscriptionStatusView
+from .views import SavePushSubscriptionView, PushSubscriptionStatusView
 
 urlpatterns = [
-    path('save-onesignal-userid/', SaveOneSignalIdView.as_view(), name='save_onesignal_userid'),
-    path('subscription/status/', SubscriptionStatusView.as_view(), name='subscription_status'),
+    path('push/save/', SavePushSubscriptionView.as_view(), name='save_push_subscription'),
+    path('push/status/', PushSubscriptionStatusView.as_view(), name='push_subscription_status'),
 ]

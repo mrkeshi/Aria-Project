@@ -32,7 +32,6 @@
     if (e.dwa) {
       router.push({ name: "singletask", params: { id: e.dwa } });
     }
-    console.log(e.dwa);
   }
   
   function mapTasksToEvents(tasks: any[]) {

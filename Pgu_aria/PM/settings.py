@@ -54,7 +54,10 @@ INSTALLED_APPS = [
     'issue_module',
     'django_filters',
     'Subcription',
-    'notification'
+    'notification',
+    'cryptography',
+    'pywebpush'
+
 
 ]
 
@@ -180,7 +183,7 @@ DJOSER ={
     'SEND_ACTIVATION_EMAIL' : True,
     'SEND_CONFIRMATION_EMAIL': True,
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
-    'PASSWORD_RESET_CONFIRM_URL': 'http://localhost:5173/account/reset_password_confirm/{uid}/{token}',
+    'PASSWORD_RESET_CONFIRM_URL': 'http://localhost:3000/account/reset_password_confirm/{uid}/{token}',
     "SET_PASSWORD_RETYPE": True,
     'USERNAME_RESET_SHOW_EMAIL_NOT_FOUND': True,
     'TOKEN_MODEL': None,
@@ -210,7 +213,7 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 ZARINPAL_MERCHANT_ID = '31f44ef2-1f66-4a10-8d75-859a632024e7'
-FRONTEND_BASE_URL="http://localhost:4433"
+FRONTEND_BASE_URL="http://localhost:3000"
 
 SUBSCRIPTION_LIMITS = {
     "free": {
@@ -240,3 +243,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 # notifications settings
 ONESIGNAL_APP_ID = "f5669b06-a3c7-4dbb-90be-94b14ae50a97"
 ONESIGNAL_REST_API_KEY = "os_v2_app_6vtjwbvdy5g3xef6ssyuvziks4vhaz64d4au2lfiuibgs5bmt4lnl3zhzkknm6k6paz43n4bbxeft7bxezki5uimrcxb6hkwb3ai3ji"
+
+
+VAPID_PUBLIC_KEY = "BI6n1krZ0FQZBJLz-N7jaCfffuaH6s0s8dGOpMwaOCeqtWdlIoUGep7QoEVX2C938j1PjMEZuNQtcJwSlXl6J3E"
+VAPID_PRIVATE_KEY = "p9u1Ya9lLCV7CZ0NaDDLSpm5p6RmbPpxfBum8eTQ3Ys"
+
+VAPID_CLAIMS = {
+    "sub": "mailto:youremail@example.com"
+}

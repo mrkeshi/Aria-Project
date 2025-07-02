@@ -35,7 +35,6 @@ return(`${shamsiMonth}/${shamsiDay}`);
         },
        async getDetail(token,id){
         await getDetailSerivce(token,id).then((result)=>{
-            console.log(result)
             Object.assign(this.detailProject,result.data)
         }).catch((er)=>{
             console.log(er)
