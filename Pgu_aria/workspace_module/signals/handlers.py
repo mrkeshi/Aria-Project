@@ -65,22 +65,25 @@ def task_created_notification(sender, instance, created, **kwargs):
     user.current_project = instance.project
     user.save()
     print(settings.FRONTEND_BASE_URL+"/dashboard/tasks" + str(instance.id))
-    payload = json.dumps({
-        "title": "تسک جدید",
-        "body": message,
-        "icon": "/img/ali.png",
-        "url": settings.FRONTEND_BASE_URL+"/dashboard/tasks/" + str(instance.id)
-    })
+    sub = Subscription.objects.get(user=project.project_manager)
+
+    if(sub.plan=="gold"):
+        payload = json.dumps({
+            "title": "تسک جدید",
+            "body": message,
+            "icon": "/img/ali.png",
+            "url": settings.FRONTEND_BASE_URL+"/dashboard/tasks/" + str(instance.id)
+        })
 
 
-    try:
-        webpush(
-            subscription_info=subscription.subscription_info,
-            data=payload,
-            vapid_private_key=settings.VAPID_PRIVATE_KEY,
-            vapid_claims=settings.VAPID_CLAIMS
-        )
-        logger.info(f"Push notification sent to user {assigned_user}")
-    except WebPushException as ex:
-        logger.error(f"Web push failed: {repr(ex)}")
+        try:
+            webpush(
+                subscription_info=subscription.subscription_info,
+                data=payload,
+                vapid_private_key=settings.VAPID_PRIVATE_KEY,
+                vapid_claims=settings.VAPID_CLAIMS
+            )
+            logger.info(f"Push notification sent to user {assigned_user}")
+        except WebPushException as ex:
+            logger.error(f"Web push failed: {repr(ex)}")
 

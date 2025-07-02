@@ -9,7 +9,7 @@
                         <span v-if="Sub.level==2">نقره ای</span>
                         <span v-if="Sub.level==3">طلایی</span>
                       </h2>
-                      <p class="text-sm text-gray-500 mt-1"> تاریخ آخرین خرید   :  
+                      <p class="text-sm text-gray-500 mt-1"> تاریخ اولین خرید   :  
                         <span v-text="toPersianNumber(convertToJalali(Sub.startedAt))"></span>
                       </p>
                     </div>

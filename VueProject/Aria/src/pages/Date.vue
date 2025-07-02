@@ -1,12 +1,12 @@
 <template>
-    <jalaliCalendar
-      :eventsList="events"
-      :vacationsList="vacations"
-      disablePastDays
-      addEventButton
-      @dayClick="showEventModal"
-      @on-event-click="showEventModal"
-    />
+ <jalaliCalendar
+  :eventsList="events"
+  :vacationsList="vacations"
+  disablePastDays
+  @dayClick="showEventModal"
+  @on-event-click="showEventModal"
+/>
+
   </template>
   
   <script setup lang="ts">

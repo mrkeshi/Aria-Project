@@ -314,7 +314,7 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
                      
-                        <tr v-for="task in taskStore.tasks">
+                        <tr v-for="task in taskStore.tasks.slice(0, 10)">
                             <td class="px-4 py-4 text-sm font-medium whitespace-nowrap">
                                 <div>
                                     <h2 class="font-medium text-gray-800 dark:text-white ">
