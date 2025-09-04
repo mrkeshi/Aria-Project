@@ -16,8 +16,6 @@ class SavePushSubscriptionView(APIView):
         if not subscription_info:
             return Response({"detail": "subscription_info is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # اگر تو subscription_info یه شناسه یکتا (مثلاً endpoint یا keys) داری،
-        # اون رو برای update یا create استفاده کن:
         endpoint = subscription_info.get("endpoint")
         if not endpoint:
             return Response({"detail": "subscription_info must contain 'endpoint'."},
