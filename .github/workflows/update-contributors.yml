@@ -1,37 +1,45 @@
-name: Update top 5 contributors (clickable)
-on:
-  schedule: [ { cron: "0 6 * * 1" } ]  # هفتگی
-  workflow_dispatch:
-  push: { branches: [ main ] }
-permissions:
-  contents: write
+- name: Generate rounded avatars (SVGs) + row
+  env:
+    REPO: ${{ github.repository }}
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+    set -euo pipefail
+    mkdir -p assets/contributors
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Generate clickable avatars (top 5)
-        env:
-          REPO: ${{ github.repository }}
-        run: |
-          DATA=$(curl -s "https://api.github.com/repos/$REPO/contributors?per_page=5&anon=0")
-          AVATARS=$(echo "$DATA" | jq -r '.[] | "<a href=\"" + .html_url + "\"><img src=\"" + .avatar_url + "&s=400\" width=\"140\" height=\"140\" title=\"" + .login + "\" alt=\"" + .login + "\"/></a>"')
-          ROW="<p align=\"center\">$(printf "%s " $AVATARS)</p>"
-          awk -v repl="$ROW" '
-            BEGIN{p=1}
-            /<!-- contrib:start -->/{print; print repl; p=0; next}
-            /<!-- contrib:end -->/{p=1}
-            p
-          ' README.md > README.tmp && mv README.tmp README.md
-      - name: Commit changes if needed
-        run: |
-          if git diff --quiet; then
-            echo "No changes."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add README.md
-            git commit -m "chore: update contributors row (top 5)"
-            git push
-          fi
+    DATA=$(curl -s \
+      -H "Authorization: Bearer $GITHUB_TOKEN" \
+      -H "Accept: application/vnd.github+json" \
+      "https://api.github.com/repos/$REPO/contributors?per_page=5&anon=0")
+
+    colors=( "#8B5CF6" "#06B6D4" "#F59E0B" "#10B981" "#EF4444" )
+    i=0
+
+    while IFS=$'\t' read -r login avatar html; do
+      color=${colors[$((i % ${#colors[@]}))]}
+      i=$((i+1))
+
+      size_param="s=192"
+      if [[ "$avatar" == *\?* ]]; then url="$avatar&$size_param"; else url="$avatar?$size_param"; fi
+      url_esc=$(printf '%s' "$url" | sed 's/&/&amp;/g')
+
+      cat > "assets/contributors/${login}.svg" <<EOF
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <defs>
+    <clipPath id="clip"><circle cx="48" cy="48" r="44"/></clipPath>
+  </defs>
+  <image href="$url_esc" x="0" y="0" width="96" height="96" clip-path="url(#clip)"/>
+  <circle cx="48" cy="48" r="46" fill="none" stroke="$color" stroke-width="4"/>
+</svg>
+EOF
+    done < <(echo "$DATA" | jq -r '.[] | [.login, .avatar_url, .html_url] | @tsv')
+
+    # ساخت ردیف HTML برای README
+    AVATARS=$(echo "$DATA" | jq -r '.[] | "<a href=\"" + .html_url + "\"><img src=\"assets/contributors/" + .login + ".svg\" width=\"96\" height=\"96\" alt=\"" + .login + "\" title=\"" + .login + "\"/></a>"')
+    ROW="<p align=\"center\">$(printf "%s " $AVATARS)</p>"
+
+    awk -v repl="$ROW" '
+      BEGIN{p=1}
+      /<!-- contrib:start -->/{print; print repl; p=0; next}
+      /<!-- contrib:end -->/{p=1}
+      p
+    ' README.md > README.tmp && mv README.tmp README.md
