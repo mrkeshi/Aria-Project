@@ -1,53 +1,113 @@
-- name: Generate rounded avatars (PNGs) + row (no SVG)
-  shell: bash
-  env:
-    REPO: ${{ github.repository }}
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  run: |
-    set -Eeuo pipefail
-    mkdir -p assets/contributors
+name: Update top 5 contributors (clickable)
 
-    # نصب ابزارهای لازم
-    sudo apt-get update -y
-    sudo apt-get install -y jq imagemagick
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Monday 06:00 UTC
+  workflow_dispatch:
+  push:
+    branches: [ main ]
 
-    echo "Fetching contributors for $REPO ..."
-    DATA=$(curl -sS -L \
-      -H "Authorization: Bearer $GITHUB_TOKEN" \
-      -H "Accept: application/vnd.github+json" \
-      "https://api.github.com/repos/$REPO/contributors?per_page=5&anon=0")
+permissions:
+  contents: write
 
-    # پاسخ باید آرایه باشه
-    if ! echo "$DATA" | jq -e 'type=="array"' >/dev/null; then
-      echo "GitHub API error:"
-      echo "$DATA" | jq -r '.message // .error // . // "Unknown error"' || true
-      exit 1
-    fi
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-    # اگر README/مارکرها نبودن، بساز
-    [[ -f README.md ]] || { echo "# $REPO" > README.md; echo >> README.md; }
-    grep -q "<!-- contrib:start -->" README.md || {
-      { echo; echo "<!-- contrib:start -->"; echo "<!-- contrib:end -->"; } >> README.md
-    }
+      - name: Generate rounded avatars (PNGs) + row (no SVG)
+        shell: bash
+        env:
+          REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          mkdir -p assets/contributors
 
-    colors=( "#8B5CF6" "#06B6D4" "#F59E0B" "#10B981" "#EF4444" )  # پالت بردر
-    i=0
-    cmd="magick"; command -v magick >/dev/null || cmd="convert"
+          # install deps
+          sudo apt-get update -y
+          sudo apt-get install -y jq imagemagick
 
-    # ساخت PNG گرد با بردر رنگی برای هر نفر
-    echo "$DATA" | jq -r '.[] | [.login, .avatar_url, .html_url] | @tsv' \
-    | while IFS=$'\t' read -r login avatar html; do
-        color=${colors[$((i % ${#colors[@]}))]}; i=$((i+1))
+          echo "Fetching contributors for $REPO ..."
+          DATA=$(curl -sS -L \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/contributors?per_page=5&anon=0")
 
-        # آواتار بزرگ‌تر برای کیفیت بهتر، بعداً خروجی رو 96px می‌کنیم
-        size_param="s=256"
-        if [[ "$avatar" == *\?* ]]; then url="$avatar&$size_param"; else url="$avatar?$size_param"; fi
+          # ensure API returned array
+          if ! echo "$DATA" | jq -e 'type=="array"' >/dev/null; then
+            echo "GitHub API error:"
+            echo "$DATA" | jq -r '.message // .error // . // "Unknown error"' || true
+            exit 1
+          fi
 
-        tmp=$(mktemp)
-        curl -sS -L "$url" -o "$tmp" || true
-        out="assets/contributors/${login}.png"
+          # ensure README and markers exist
+          [[ -f README.md ]] || { echo "# $REPO" > README.md; echo >> README.md; }
+          grep -q "<!-- contrib:start -->" README.md || {
+            { echo; echo "<!-- contrib:start -->"; echo "<!-- contrib:end -->"; } >> README.md
+          }
 
-        if [ -s "$tmp" ]; then
-          # 192x192 → ماسک دایره → کپی به آلفا → کشیدن بردر → در نهایت 96px و فشرده‌سازی
-          $cmd "$tmp" -resize 192x192^ -gravity center -extent 192x192 \
-            \( -size 192x192 xc:none -fill white -draw "circle 96,96
+          colors=( "#8B5CF6" "#06B6D4" "#F59E0B" "#10B981" "#EF4444" )
+          i=0
+          cmd="magick"; command -v magick >/dev/null || cmd="convert"
+
+          # build rounded PNGs with colored border
+          echo "$DATA" | jq -r '.[] | [.login, .avatar_url, .html_url] | @tsv' \
+          | while IFS=$'\t' read -r login avatar html; do
+              color=${colors[$((i % ${#colors[@]}))]}; i=$((i+1))
+
+              size_param="s=256"
+              if [[ "$avatar" == *\?* ]]; then url="$avatar&$size_param"; else url="$avatar?$size_param"; fi
+
+              tmp=$(mktemp)
+              curl -sS -L "$url" -o "$tmp" || true
+              out="assets/contributors/${login}.png"
+
+              if [ -s "$tmp" ]; then
+                # 192x192 -> circular mask -> border -> final 96x96
+                $cmd "$tmp" -resize 192x192^ -gravity center -extent 192x192 \
+                  \( -size 192x192 xc:none -fill white -draw "circle 96,96 96,0" \) \
+                  -compose copyopacity -composite \
+                  \( -size 192x192 xc:none -stroke "$color" -strokewidth 8 -fill none -draw "circle 96,96 96,4" \) \
+                  -compose over -composite \
+                  -resize 96x96 -strip -define png:compression-level=9 "$out"
+              else
+                echo "WARN: failed to fetch avatar for $login, using placeholder."
+                $cmd -size 96x96 xc:none \
+                  \( -fill "#e5e7eb" -draw "circle 48,48 48,2" \) \
+                  \( -stroke "$color" -strokewidth 4 -fill none -draw "circle 48,48 48,2" \) \
+                  -compose over -composite \
+                  -strip -define png:compression-level=9 "$out"
+              fi
+              rm -f "$tmp"
+            done
+
+          # build HTML row
+          AVATARS=$(echo "$DATA" \
+            | jq -r '.[] | "<a href=\"" + .html_url + "\"><img src=\"assets/contributors/" + .login + ".png\" width=\"96\" height=\"96\" alt=\"" + .login + "\" title=\"" + .login + "\"/></a>"' \
+            | tr '\n' ' ')
+
+          ROW="<p align=\"center\">${AVATARS}</p>"
+
+          # inject between markers
+          awk -v repl="$ROW" '
+            BEGIN{p=1}
+            /<!-- contrib:start -->/{print; print repl; p=0; next}
+            /<!-- contrib:end -->/{p=1}
+            p
+          ' README.md > README.tmp && mv README.tmp README.md
+
+          echo "PNG avatars generated and README updated."
+
+      - name: Commit changes if needed
+        run: |
+          if git diff --quiet; then
+            echo "No changes."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md assets/contributors/*.png
+            git commit -m "chore: update contributors row (rounded PNG avatars with border)"
+            git push
+          fi
