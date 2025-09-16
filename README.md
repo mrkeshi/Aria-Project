@@ -98,7 +98,7 @@
 
 ## 👥 Core Contributors
 <!-- contrib:start -->
-<p align="center"><a href="https://github.com/mrkeshi"><img src="https://avatars.githubusercontent.com/u/66950773?v=4&s=400" width="140" height="140" title="mrkeshi" alt="mrkeshi"/></a> <a href="https://github.com/mohammadhtk"><img src="https://avatars.githubusercontent.com/u/137170258?v=4&s=400" width="140" height="140" title="mohammadhtk" alt="mohammadhtk"/></a> </p>
+<p align="center"><a href="https://github.com/mrkeshi"><img src="assets/contributors/mrkeshi.png" width="96" height="96" alt="mrkeshi" title="mrkeshi"/></a> <a href="https://github.com/mohammadhtk"><img src="assets/contributors/mohammadhtk.png" width="96" height="96" alt="mohammadhtk" title="mohammadhtk"/></a> </p>
 <!-- contrib:end -->
 
 ---
