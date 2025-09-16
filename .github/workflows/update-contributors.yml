@@ -1,45 +1,53 @@
-- name: Generate rounded avatars (SVGs) + row
+- name: Generate rounded avatars (PNGs) + row (no SVG)
+  shell: bash
   env:
     REPO: ${{ github.repository }}
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   run: |
-    set -euo pipefail
+    set -Eeuo pipefail
     mkdir -p assets/contributors
 
-    DATA=$(curl -s \
+    # نصب ابزارهای لازم
+    sudo apt-get update -y
+    sudo apt-get install -y jq imagemagick
+
+    echo "Fetching contributors for $REPO ..."
+    DATA=$(curl -sS -L \
       -H "Authorization: Bearer $GITHUB_TOKEN" \
       -H "Accept: application/vnd.github+json" \
       "https://api.github.com/repos/$REPO/contributors?per_page=5&anon=0")
 
-    colors=( "#8B5CF6" "#06B6D4" "#F59E0B" "#10B981" "#EF4444" )
+    # پاسخ باید آرایه باشه
+    if ! echo "$DATA" | jq -e 'type=="array"' >/dev/null; then
+      echo "GitHub API error:"
+      echo "$DATA" | jq -r '.message // .error // . // "Unknown error"' || true
+      exit 1
+    fi
+
+    # اگر README/مارکرها نبودن، بساز
+    [[ -f README.md ]] || { echo "# $REPO" > README.md; echo >> README.md; }
+    grep -q "<!-- contrib:start -->" README.md || {
+      { echo; echo "<!-- contrib:start -->"; echo "<!-- contrib:end -->"; } >> README.md
+    }
+
+    colors=( "#8B5CF6" "#06B6D4" "#F59E0B" "#10B981" "#EF4444" )  # پالت بردر
     i=0
+    cmd="magick"; command -v magick >/dev/null || cmd="convert"
 
-    while IFS=$'\t' read -r login avatar html; do
-      color=${colors[$((i % ${#colors[@]}))]}
-      i=$((i+1))
+    # ساخت PNG گرد با بردر رنگی برای هر نفر
+    echo "$DATA" | jq -r '.[] | [.login, .avatar_url, .html_url] | @tsv' \
+    | while IFS=$'\t' read -r login avatar html; do
+        color=${colors[$((i % ${#colors[@]}))]}; i=$((i+1))
 
-      size_param="s=192"
-      if [[ "$avatar" == *\?* ]]; then url="$avatar&$size_param"; else url="$avatar?$size_param"; fi
-      url_esc=$(printf '%s' "$url" | sed 's/&/&amp;/g')
+        # آواتار بزرگ‌تر برای کیفیت بهتر، بعداً خروجی رو 96px می‌کنیم
+        size_param="s=256"
+        if [[ "$avatar" == *\?* ]]; then url="$avatar&$size_param"; else url="$avatar?$size_param"; fi
 
-      cat > "assets/contributors/${login}.svg" <<EOF
-<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
-  <defs>
-    <clipPath id="clip"><circle cx="48" cy="48" r="44"/></clipPath>
-  </defs>
-  <image href="$url_esc" x="0" y="0" width="96" height="96" clip-path="url(#clip)"/>
-  <circle cx="48" cy="48" r="46" fill="none" stroke="$color" stroke-width="4"/>
-</svg>
-EOF
-    done < <(echo "$DATA" | jq -r '.[] | [.login, .avatar_url, .html_url] | @tsv')
+        tmp=$(mktemp)
+        curl -sS -L "$url" -o "$tmp" || true
+        out="assets/contributors/${login}.png"
 
-    # ساخت ردیف HTML برای README
-    AVATARS=$(echo "$DATA" | jq -r '.[] | "<a href=\"" + .html_url + "\"><img src=\"assets/contributors/" + .login + ".svg\" width=\"96\" height=\"96\" alt=\"" + .login + "\" title=\"" + .login + "\"/></a>"')
-    ROW="<p align=\"center\">$(printf "%s " $AVATARS)</p>"
-
-    awk -v repl="$ROW" '
-      BEGIN{p=1}
-      /<!-- contrib:start -->/{print; print repl; p=0; next}
-      /<!-- contrib:end -->/{p=1}
-      p
-    ' README.md > README.tmp && mv README.tmp README.md
+        if [ -s "$tmp" ]; then
+          # 192x192 → ماسک دایره → کپی به آلفا → کشیدن بردر → در نهایت 96px و فشرده‌سازی
+          $cmd "$tmp" -resize 192x192^ -gravity center -extent 192x192 \
+            \( -size 192x192 xc:none -fill white -draw "circle 96,96
