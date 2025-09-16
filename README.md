@@ -96,6 +96,12 @@
 
 ---
 
+## 👥 Core Contributors
+<!-- contrib:start -->
+<!-- contrib:end -->
+
+---
+
 ## 📦 Ready to Launch
 
 Aria is designed for teams who value structure, speed, and clarity.  
