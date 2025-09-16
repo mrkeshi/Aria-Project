@@ -1,0 +1,37 @@
+name: Update top 5 contributors (clickable)
+on:
+  schedule: [ { cron: "0 6 * * 1" } ]  # هفتگی
+  workflow_dispatch:
+  push: { branches: [ main ] }
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate clickable avatars (top 5)
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          DATA=$(curl -s "https://api.github.com/repos/$REPO/contributors?per_page=5&anon=0")
+          AVATARS=$(echo "$DATA" | jq -r '.[] | "<a href=\"" + .html_url + "\"><img src=\"" + .avatar_url + "&s=400\" width=\"140\" height=\"140\" title=\"" + .login + "\" alt=\"" + .login + "\"/></a>"')
+          ROW="<p align=\"center\">$(printf "%s " $AVATARS)</p>"
+          awk -v repl="$ROW" '
+            BEGIN{p=1}
+            /<!-- contrib:start -->/{print; print repl; p=0; next}
+            /<!-- contrib:end -->/{p=1}
+            p
+          ' README.md > README.tmp && mv README.tmp README.md
+      - name: Commit changes if needed
+        run: |
+          if git diff --quiet; then
+            echo "No changes."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "chore: update contributors row (top 5)"
+            git push
+          fi
